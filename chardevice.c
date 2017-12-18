@@ -92,7 +92,7 @@ static ssize_t device_read(struct file *filep, char *buffer, size_t len, loff_t 
    error_count = copy_to_user(buffer, message, size_of_message);
  
    if (error_count==0){            
-      printk(KERN_INFO "Character device: Sent %d characters to the user\n", size_of_message);
+      printk(KERN_INFO "Character device: Sent %d bytes to the user\n", size_of_message);
       return (size_of_message=0); 
    }
    else {
@@ -101,20 +101,31 @@ static ssize_t device_read(struct file *filep, char *buffer, size_t len, loff_t 
    }
 }
 
-static ssize_t device_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
-   sprintf(message, "%s(%zu letters)", buffer, len);   // appending received string with its length
-   size_of_message = strlen(message);                 // store the length of the stored message
-   printk(KERN_INFO "Character device: Received %zu characters from the user\n", len);
-   return len;
+// static ssize_t device_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+//    sprintf(message, "%s(%zu letters)", buffer, len);   // appending received string with its length
+//    size_of_message = strlen(message);                 // store the length of the stored message
+//    printk(KERN_INFO "Character device: Received %zu characters from the user\n", len);
+//    return len;
+// }
+ static ssize_t device_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
+    sprintf(message, "%s(%zu letters)", buffer, len);   // appending received string with its length
+    size_of_message = strlen(message);                 // store the length of the stored message
+    if(copy_from_user(&message, buffer, size_of_message)){
+        printk(KERN_INFO "Character device: Failed to receive from user\n");
+    return -EFAULT;
+    } else{
+        printk(KERN_INFO "Received %zu characters from user, %s\n", len, message);
+        return 0;
+   }
 }
- 
+
 static int device_release(struct inode *inodep, struct file *filep){
    mutex_unlock(&chardevice_mutex);
    printk(KERN_INFO "Character device: Device successfully closed\n");
    return 0;
 }
 
-static int volume = 1, bash = 3, hight = 5;
+static int volume = 10, bash = 10, hight = 10;
 static long device_ioctl(struct file *f, unsigned int cmd, unsigned long arg){
     device_info dev;
     switch(cmd){

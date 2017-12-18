@@ -8,11 +8,10 @@
 #include "chardevice.h"        
 
 #define BUFFER_LENGTH 256               //buffer to store input string
-//static char receive[BUFFER_LENGTH];    
 //send message to device
 void sendMessage(int f){
         char stringToSend[BUFFER_LENGTH];
-        printf("Type in a  message to send to the device:\n");
+        printf("Type in a  message to send to the device: ");
         scanf("%[^\n]%*c", stringToSend);                // Read in a string (with spaces)
         //printf("Sending message to the device [%s].\n", stringToSend);
         int ret = write(f, stringToSend, strlen(stringToSend)); // Send the string to the LKM
@@ -31,6 +30,9 @@ void getMessage(int f){
         if (ret < 0){
                 perror("Failed to read the message from the device.");
                 return;
+        }
+        if(strlen(receive) == 0){
+                printf("No message received.\n");
         }
         printf("Receive message success, the received message is: [%s]\n", receive);
 }
