@@ -4,7 +4,9 @@
 #include <linux/kernel.h>        
 #include <linux/fs.h>             
 #include <asm/uaccess.h>
+#include <linux/mutex.h>
 #include "chardevice.h"        
+
 #define  DEVICE_NAME "chardevice"    
 #define  CLASS_NAME  "deviceclass"       
  
@@ -89,10 +91,9 @@ static int device_open(struct inode *inodep, struct file *filep){
 static ssize_t device_read(struct file *filep, char *buffer, size_t len, loff_t *offset){
    int error_count = 0;
    // copy_to_user( * to, *from, size), returns 0 on success
-   error_count = copy_to_user(buffer, message, size_of_message);
- 
+    error_count = copy_to_user(buffer, message, size_of_message);
    if (error_count==0){            
-      printk(KERN_INFO "Character device: Sent %d bytes to the user\n", size_of_message);
+      printk(KERN_INFO "Character device: Sent %d characters to the user\n", size_of_message);
       return (size_of_message=0); 
    }
    else {
@@ -101,20 +102,13 @@ static ssize_t device_read(struct file *filep, char *buffer, size_t len, loff_t 
    }
 }
 
-// static ssize_t device_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
-//    sprintf(message, "%s(%zu letters)", buffer, len);   // appending received string with its length
-//    size_of_message = strlen(message);                 // store the length of the stored message
-//    printk(KERN_INFO "Character device: Received %zu characters from the user\n", len);
-//    return len;
-// }
  static ssize_t device_write(struct file *filep, const char *buffer, size_t len, loff_t *offset){
-    sprintf(message, "%s(%zu letters)", buffer, len);   // appending received string with its length
-    size_of_message = strlen(message);                 // store the length of the stored message
-    if(copy_from_user(&message, buffer, size_of_message)){
+    size_of_message = strlen(buffer);                 // store the length of the stored message
+    if(copy_from_user(message, buffer, size_of_message)){
         printk(KERN_INFO "Character device: Failed to receive from user\n");
     return -EFAULT;
     } else{
-        printk(KERN_INFO "Received %zu characters from user, %s\n", len, message);
+        printk(KERN_INFO "Received %zu characters from user, message: %s\n", len, message);
         return 0;
    }
 }

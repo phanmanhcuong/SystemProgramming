@@ -26,15 +26,17 @@ void sendMessage(int f){
 //get the message back
 void getMessage(int f){
         char receive[BUFFER_LENGTH];
+        memset(receive, 0, strlen(receive));
         int ret = read(f, receive, BUFFER_LENGTH);        // Read the response from the LKM
         if (ret < 0){
                 perror("Failed to read the message from the device.");
                 return;
         }
         if(strlen(receive) == 0){
-                printf("No message received.\n");
+                printf("No data to display.\n");
+        } else{
+                printf("Receive message success, the received message is: [%s], length: %zu\n", receive, strlen(receive));
         }
-        printf("Receive message success, the received message is: [%s]\n", receive);
 }
 
 //set device's information
